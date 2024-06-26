@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brandt's Website</title>
+    <style>
+        body {
+            background-color: rgb(255, 174, 0);
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            #gameCanvas {
+            border: 1px solid black;
+            background-color: black;
+        }
+        #gameOver {
+            display: none;
+            color: red;
+            font-size: 48px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        #restartButton {
+            display: none;
+            font-size: 24px;
+            margin: 20px auto;
+            padding: 10px 20px;
+        }
+    </style>
+</head>
+<body>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <p>Score: <span id="score">0</span></p>
+        <div id="gameOver">Game Over</div>
+        <button id="restartButton">Restart Game</button>
+        <script>
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            const scoreElement = document.getElementById('score');
+            const gameOverElement = document.getElementById('gameOver');
+            const restartButton = document.getElementById('restartButton');
+    
+            const player = {
+                x: canvas.width / 2 - 25,
+                y: canvas.height - 60,
+                width: 50,
+                height: 50,
+                speed: 5
+            };
+    
+            const enemy = {
+                x: Math.random() * (canvas.width - 50),
+                y: 0,
+                width: 50,
+                height: 50,
+                speed: 2
+            };
+    
+            const bullet = {
+                x: 0,
+                y: 0,
+                width: 5,
+                height: 15,
+                speed: 7,
+                active: false
+            };
+    
+            let score = 0;
+            let rightPressed = false;
+            let leftPressed = false;
+            let gameOver = false;
+    
+            document.addEventListener('keydown', keyDownHandler);
+            document.addEventListener('keyup', keyUpHandler);
+            restartButton.addEventListener('click', restartGame);
+    
+            function keyDownHandler(e) {
+                if (!gameOver) {
+                    if (e.key === 'Right' || e.key === 'ArrowRight') {
+                        rightPressed = true;
+                    } else if (e.key === 'Left' || e.key === 'ArrowLeft') {
+                        leftPressed = true;
+                    } else if (e.key === ' ' && !bullet.active) {
+                        fireBullet();
+                    }
+                }
+            }
+    
+            function keyUpHandler(e) {
+                if (e.key === 'Right' || e.key === 'ArrowRight') {
+                    rightPressed = false;
+                } else if (e.key === 'Left' || e.key === 'ArrowLeft') {
+                    leftPressed = false;
+                }
+            }
+    
+            function fireBullet() {
+                bullet.x = player.x + player.width / 2 - bullet.width / 2;
+                bullet.y = player.y;
+                bullet.active = true;
+            }
+    
+            function update() {
+                if (gameOver) return;
+    
+                // Player movement
+                if (rightPressed && player.x < canvas.width - player.width) {
+                    player.x += player.speed;
+                } else if (leftPressed && player.x > 0) {
+                    player.x -= player.speed;
+                }
+    
+                // Enemy movement
+                enemy.y += enemy.speed;
+                if (enemy.y > canvas.height) {
+                    resetEnemy();
+                }
+    
+                // Bullet movement
+                if (bullet.active) {
+                    bullet.y -= bullet.speed;
+                    if (bullet.y < 0) {
+                        bullet.active = false;
+                    }
+                }
+    
+                // Collision detection: Bullet and Enemy
+                if (bullet.active && 
+                    bullet.x < enemy.x + enemy.width &&
+                    bullet.x + bullet.width > enemy.x &&
+                    bullet.y < enemy.y + enemy.height &&
+                    bullet.y + bullet.height > enemy.y) {
+                    score++;
+                    scoreElement.textContent = score;
+                    resetEnemy();
+                    bullet.active = false;
+                }
+    
+                // Collision detection: Player and Enemy
+                if (player.x < enemy.x + enemy.width &&
+                    player.x + player.width > enemy.x &&
+                    player.y < enemy.y + enemy.height &&
+                    player.y + player.height > enemy.y) {
+                    gameOver = true;
+                    gameOverElement.style.display = 'block';
+                    restartButton.style.display = 'block';
+                }
+            }
+    
+            function resetEnemy() {
+                enemy.x = Math.random() * (canvas.width - enemy.width);
+                enemy.y = 0;
+            }
+    
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+                // Draw player
+                ctx.fillStyle = 'white';
+                ctx.fillRect(player.x, player.y, player.width, player.height);
+    
+                // Draw enemy
+                ctx.fillStyle = 'red';
+                ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+    
+                // Draw bullet
+                if (bullet.active) {
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                }
+            }
+    
+            function gameLoop() {
+                update();
+                draw();
+                requestAnimationFrame(gameLoop);
+            }
+    
+            function restartGame() {
+                gameOver = false;
+                gameOverElement.style.display = 'none';
+                restartButton.style.display = 'none';
+                score = 0;
+                scoreElement.textContent = score;
+                player.x = canvas.width / 2 - 25;
+                resetEnemy();
+                bullet.active = false;
+            }
+    
+            gameLoop();
+        </script>
+    </main>
+<a href="index.html">Go back to my home page.</a>
+<h1>Use the arrow keys to move the white square and press space to shoot. try to get the highest score possible.</h1>
+<h2>This relates to my interests and goals because I want to be the best I can.</h2>
+</body>
+</html>
